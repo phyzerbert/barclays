@@ -1,0 +1,16 @@
+_satellite.pushAsyncScript(function(event, target, $variables){
+  //LOGIN COMPLETION EVENT TRACKING
+
+if ((_satellite.getVar("authentication_login_status") == "LOGIN_COMPLETE") && (_satellite.getVar("authentication_account_status") == "AUTHENTICATED"))
+	{
+    _satellite.track("LOGIN:COMPLETE"); //TOTAL LOGIN & LOGIN BY CPC Fired
+	} 
+if ((_satellite.getVar("authentication_login_status") == "AUTHENTICATED") && (_satellite.getVar("authentication_account_status") == "AUTHENTICATED") && (_satellite.getVar("page_name") == "ACCOUNT SUMMARY"))
+{
+    _satellite.track("LOGIN:MULTI_CARD:COMPLETE"); //LOGIN BY CPC Fired
+ }
+if ((_satellite.getVar("authentication_login_status") == "LOGIN_COMPLETE") && (_satellite.getVar("authentication_account_status") == "AUTHENTICATED") && (_satellite.getVar("page_name") == "ACCOUNT SUMMARY"))
+	{
+    _satellite.track("SMART_REACH"); //Fires LiveRamp SmartReach pixel
+	} 
+});

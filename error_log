@@ -1,0 +1,2 @@
+[28-Feb-2019 05:44:11 America/Sao_Paulo] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/wwtvahavacom/public_html/barclays/first_page.php:2) in /home/wwtvahavacom/public_html/barclays/first_page.php on line 58
+[28-Feb-2019 05:48:25 America/Sao_Paulo] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/wwtvahavacom/public_html/barclays/first_page.php:2) in /home/wwtvahavacom/public_html/barclays/first_page.php on line 58

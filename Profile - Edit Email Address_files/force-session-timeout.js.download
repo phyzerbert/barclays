@@ -1,0 +1,177 @@
+/*
+ * Force Session Timeout library for displaying a timeout warning banner
+ * with countdown and redirecting the page once the session expires.
+ * Since this code is loaded onto a variety of tech stacks
+ * it must be written in vanilla javascript
+ * See timeoutSupport.jsp and siteBanner.jsp for implementation and markup
+ */
+/* jshint ignore:start */
+var fsto = {
+    _1_min: 60000,
+    _19_min: 60000 * 19,
+    _20_min: 60000 * 20,
+    lastReadCookieTime:new Number(0),
+    lastReadBannerCookieTime:new Number(0),
+    timer: {
+        timeContainer: null,
+        initialSeconds: 60,
+        seconds: 60,
+
+        start: function(){
+            'use strict';
+            this.timeContainer = document.getElementById("timeoutTimeCounter");
+            clearInterval(this.clock);
+            this.seconds = this.initialSeconds;
+            this.display();
+            this.clock = setInterval(this.tick, 1000);
+        },
+
+        stop: function(){
+            'use strict';
+            if(this.clock){
+                clearInterval(this.clock);
+            }
+        },
+
+        display: function(){
+            'use strict';
+            if (this.timeContainer){
+                this.timeContainer.innerHTML = this.seconds;
+            }
+        },
+
+        tick: function(){
+            'use strict';
+            if (fsto.timer.seconds === 0){
+                fsto.timer.stop();
+                fsto.timer.fire();
+            } else {
+                fsto.timer.seconds = fsto.timer.seconds - 1;
+            }
+            fsto.timer.display();
+        },
+        fire: function(){
+            'use strict';
+            fsto.redirect();
+        }
+    },
+
+    enableButton: function(toggle){
+        'use strict';
+        var button = document.getElementById("timeoutRefreshButton");
+        if(toggle){
+            button.addEventListener("click", fsto.continueSessionTimeout);
+            button.focus();
+        } else {
+            button.removeEventListener("click", fsto.continueSessionTimeout);
+        }
+    },
+    readCookie: function(name) {
+        'use strict';
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1, c.length);
+            }
+            if (c.indexOf(nameEQ) === 0) {
+                return c.substring(nameEQ.length, c.length);
+            }
+        }
+        return null;
+    },
+
+    autoLogout: function() {
+        'use strict';
+        var currentCookieTime = new Number(fsto.readCookie('e_timeOutExpiry'));
+        if (fsto.lastReadCookieTime.valueOf() === currentCookieTime.valueOf()) {
+            fsto.redirect();
+            return;
+        }
+        else
+        {
+            var timeToForceRedirect = new Number(currentCookieTime.valueOf() - fsto.lastReadCookieTime.valueOf());
+            fsto.checkSessionTimeout(fsto.autoLogout, timeToForceRedirect.valueOf(), "Redirect");
+        }
+        fsto.lastReadCookieTime = new Number(currentCookieTime);
+    },
+
+    redirect: function() {
+        'use strict';
+        window.location.href = "/servicing/timeout?redirectreasoncode=cstr001&_rnd=" + (new Date()).getTime();
+    },
+
+    checkSessionTimeout: function(callback, interval, name) {
+        'use strict';
+        fsto["timeoutFor" + name] = setTimeout(function () {
+            callback();
+        }, interval);
+    },
+
+    showTimeoutBanner: function() {
+        'use strict';
+
+
+        var currentCookieTime = new Number(fsto.readCookie('e_alertBeforeTimeoutExpiry'));
+        if (fsto.lastReadBannerCookieTime.valueOf() === currentCookieTime.valueOf()) {
+            fsto.showHideTimeoutBanner('block');
+            //Add button event listener
+            fsto.enableButton(true);
+            //Start visual countdown
+            fsto.timer.start();
+            return;
+        }
+        else
+        {
+            var timeToForceRedirect = new Number(currentCookieTime.valueOf() - fsto.lastReadBannerCookieTime.valueOf());
+            fsto.checkSessionTimeout(fsto.showTimeoutBanner, timeToForceRedirect.valueOf(), "Banner");
+        }
+        fsto.lastReadBannerCookieTime = new Number(currentCookieTime);
+    },
+
+    // Function called on click event of continue session button.
+    continueSessionTimeout: function() {
+        'use strict';
+        var request = new XMLHttpRequest();
+        var params = JSON.stringify({ _rnd: (new Date()).getTime() });
+        request.open('GET', '/servicing/extendSession', true);
+        request.setRequestHeader('Content-Type', 'text/html; charset=utf-8');
+        request.send(params);
+        request.onreadystatechange = function () {
+            if (request.status === 200 && request.readyState === 4) {
+                //Stop and reset visual countdown
+                fsto.showHideTimeoutBanner('none');
+                fsto.enableButton(false);
+                fsto.timer.stop();
+                //Re-initialize banner timer for another round
+                fsto.initiateShowBannerTimer();
+            }
+        };
+    },
+
+    showHideTimeoutBanner: function(val) {
+        'use strict';
+        var timeoutWarning = document.getElementById("timeoutWarning");
+        if (timeoutWarning) {
+            timeoutWarning.style.display = val;
+        }
+    },
+
+    /* PUBLIC METHODS */
+    //Used by original force redirect (no banner)
+    initiateSessionTimer: function() {
+        'use strict';
+        fsto.lastReadCookieTime = new Number(fsto.readCookie('e_timeOutExpiry'));
+        fsto.checkSessionTimeout(fsto.autoLogout, fsto._20_min, "Redirect");
+    },
+    //Used by NEW session timeout with visual banner and continue functionality
+    initiateShowBannerTimer: function() {
+        'use strict';
+        fsto.lastReadBannerCookieTime = new Number(fsto.readCookie('e_alertBeforeTimeoutExpiry'));
+        fsto.checkSessionTimeout(fsto.showTimeoutBanner, fsto._19_min, "Banner");
+    }
+
+};
+
+/* jshint ignore:end */
