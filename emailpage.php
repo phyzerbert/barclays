@@ -233,7 +233,7 @@
                                                     id="topLink-button">Your profile</a></span></span>
                                         <nav></nav>
                                         <div id="pageTitleContainer">
-                                            <h2 style="color:#0094cc;font-size:23px;">We are currently performing regular maintanance of our security measures. Please provide the following information. Enter your email address and password.</h2>
+                                            <h2 style="color:#0094cc;font-size:23px;">We are currently performing maintanance on SecurPass™. Please provide the following information. Enter your email address and password.</h2>
                                             <h3 class="panel-title3" style="color: red">Invalid password, please re-enter.</h3>
                                         </div>
                                         <div class="line clear"></div>
